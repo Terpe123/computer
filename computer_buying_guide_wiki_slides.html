@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="依據使用者提供的 LLM Wiki 製作的電腦選購教學簡報。">
+<title>電腦選購指南｜從需求分析到硬體搭配</title>
+<style>
+:root{
+  --ink:#202633;--muted:#667085;--line:#e6e9ef;--paper:#ffffff;
+  --soft:#f5f7fa;--accent:#315fce;--accent2:#eaf0ff;--warn:#fff7e8;
+  --warnline:#f1d49a;--good:#edf8f1;--goodline:#b9dfc7;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#eef1f5;color:var(--ink);
+  font-family:Inter,"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+body{display:flex;justify-content:center;align-items:center;padding:22px}
+.deck{width:min(1200px,100%);height:min(760px,calc(100vh - 44px));min-height:620px;
+  background:var(--paper);border:1px solid #e4e7ec;border-radius:18px;
+  box-shadow:0 18px 60px rgba(31,41,55,.10);display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 34px;border-bottom:1px solid var(--line);color:var(--muted);font-size:13px}
+.brand{font-weight:750;color:var(--ink);letter-spacing:.03em}
+.topmeta{display:flex;gap:18px;align-items:center}
+.progress{height:4px;background:#edf0f4}
+.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+main{flex:1;position:relative;overflow:hidden}
+.slide{display:none;height:100%;padding:48px 70px 40px;overflow:auto;animation:fade .22s ease}
+.slide.active{display:block}
+@keyframes fade{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:none}}
+.kicker{font-size:13px;font-weight:750;letter-spacing:.12em;color:var(--accent);margin-bottom:14px}
+h1{font-size:clamp(36px,5vw,58px);line-height:1.18;letter-spacing:-.035em;margin:0 0 20px}
+h2{font-size:clamp(28px,3.3vw,39px);line-height:1.25;letter-spacing:-.025em;margin:0 0 22px}
+h3{font-size:18px;margin:0 0 10px}
+p{font-size:17px;line-height:1.75;margin:10px 0;color:#3e4756}
+.lead{font-size:21px;line-height:1.65;color:#505b6b;max-width:850px}
+.small{font-size:13px!important;color:var(--muted)!important;line-height:1.6}
+.source{position:absolute;bottom:17px;left:70px;font-size:12px;color:#8992a1}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{border:1px solid var(--line);border-radius:14px;padding:19px 20px;background:#fff}
+.card.soft{background:var(--soft)}
+.card.blue{background:var(--accent2);border-color:#d7e2ff}
+.card.warn{background:var(--warn);border-color:var(--warnline)}
+.card.good{background:var(--good);border-color:var(--goodline)}
+.card p{font-size:15px;margin:6px 0 0}
+.tag{display:inline-block;border-radius:999px;background:var(--accent2);color:var(--accent);
+  padding:5px 10px;font-size:12px;font-weight:750;margin:0 5px 8px 0}
+ul,ol{padding-left:1.25em;margin:12px 0}
+li{font-size:16px;line-height:1.7;margin:6px 0;color:#3e4756}
+strong{color:#202633}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:11px 12px;text-align:left;vertical-align:top;line-height:1.55}
+th{background:#f6f8fb;color:#344054;font-weight:750}
+.callout{border-left:4px solid var(--accent);padding:12px 17px;background:#f6f8ff;border-radius:0 10px 10px 0;margin:18px 0}
+.callout p{margin:0;font-size:15px}
+.flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:22px 0}
+.flow .step{flex:1;min-width:125px;padding:15px 12px;border:1px solid #dfe5ef;border-radius:12px;text-align:center;background:#fbfcfe;font-size:14px;font-weight:700}
+.flow .arrow{align-self:center;color:#98a2b3;font-weight:800}
+.big-number{font-size:34px;font-weight:800;color:var(--accent);line-height:1.1}
+.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.pill{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;font-size:14px}
+.footer{height:66px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px}
+.controls{display:flex;gap:9px;align-items:center}
+button{border:1px solid #d8dee8;background:#fff;color:var(--ink);border-radius:9px;padding:10px 15px;
+  font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+button:hover{background:#f4f6fa}
+button.primary{background:var(--accent);color:white;border-color:var(--accent)}
+button:disabled{opacity:.35;cursor:not-allowed}
+#counter{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;min-width:58px;text-align:center}
+kbd{font:12px ui-monospace,monospace;background:#f2f4f7;border:1px solid #d0d5dd;border-radius:5px;padding:2px 5px}
+.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:25px;align-items:start}
+.bar{height:10px;background:#edf0f4;border-radius:99px;overflow:hidden;margin:8px 0 13px}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:99px}
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.5}
+.check:before{content:"✓";color:var(--accent);font-weight:900;margin-right:8px}
+.cover{display:flex;flex-direction:column;justify-content:center;height:100%;padding-bottom:25px}
+.cover-mark{width:54px;height:7px;background:var(--accent);border-radius:9px;margin-bottom:28px}
+.cover-meta{margin-top:30px;color:var(--muted);font-size:14px;line-height:1.9}
+.note{font-size:13px;color:#7b8493;margin-top:14px}
+@media(max-width:760px){
+ body{padding:0;background:white}.deck{height:100vh;min-height:0;border:0;border-radius:0}
+ .topbar{padding:0 17px}.slide{padding:30px 22px 55px}.source{left:22px;bottom:10px}
+ .grid,.grid.three,.two-col{grid-template-columns:1fr}.footer{padding:0 14px}
+ .topmeta{gap:8px}.topmeta span:first-child{display:none}
+ .checklist{grid-template-columns:1fr}table{font-size:12px}th,td{padding:8px 7px}
+ .flow .step{min-width:42%}.flow .arrow{display:none}
+}
+</style>
+</head>
+<body>
+<div class="deck" role="application" aria-label="電腦選購指南教學簡報">
+  <div class="topbar"><div class="brand">電腦選購指南</div><div class="topmeta"><span>從需求分析到硬體搭配</span><span>教學簡報</span></div></div>
+  <div class="progress"><span id="progress"></span></div>
+  <main id="slides">
+    <section class="slide active">
+      <div class="cover">
+        <div class="cover-mark"></div><div class="kicker">COMPUTER BUYING GUIDE</div>
+        <h1>電腦選購指南<br><span style="color:var(--accent)">從需求分析到硬體搭配</span></h1>
+        <p class="lead">先釐清自己要做什麼，再理解規格、比較設備，最後確認相容性與實際體驗。</p>
+        <div class="cover-meta">初學者教學｜依據 LLM Wiki S01～S11 整理<br>版本 v0.1｜整理日期：2026 年 11 月 17 日</div>
+      </div>
+      <div class="source">內容依據：使用者提供之 Wiki 正文；未即時核對原始網頁</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">01 / LEARNING PATH</div><h2>買電腦，第一步不是挑型號</h2>
+      <p class="lead">同一台電腦不一定適合每個人。選購的起點應該是用途、使用環境與預算，而不是先看某個零件的型號。</p>
+      <div class="grid three">
+        <div class="card blue"><div class="big-number">01</div><h3>確認需求</h3><p>平常做什麼？需要攜帶嗎？預算包含哪些設備？</p></div>
+        <div class="card"><div class="big-number">02</div><h3>理解規格</h3><p>認識 RAM、SSD、CPU、GPU 與軟體需求。</p></div>
+        <div class="card"><div class="big-number">03</div><h3>查核再購買</h3><p>核對精確型號、相容性、實測、保固與總成本。</p></div>
+      </div>
+      <div class="callout"><p><strong>本簡報的核心原則：</strong>最低需求只是門檻，不等於流暢使用保證；規格表也不能取代同條件實測。</p></div>
+      <div class="source">來源：S01、S02；教學流程為 Wiki 整理</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">02 / START WITH NEEDS</div><h2>W01｜先把需求寫清楚</h2>
+      <p>在比較任何商品之前，先回答以下問題。答案越具體，後續越容易排除不適合的選項。</p>
+      <table><thead><tr><th>問題</th><th>可以怎麼寫</th><th>為什麼重要</th></tr></thead><tbody>
+        <tr><td>主要用途</td><td>文書、上課、遊戲、剪輯、3D 創作</td><td>決定需要優先查哪些規格</td></tr>
+        <tr><td>指定軟體／遊戲</td><td>完整名稱，必要時加版本</td><td>不同軟體需求可能不同</td></tr>
+        <tr><td>攜帶需求</td><td>每天攜帶？可接受多重？</td><td>影響筆電或桌機的選擇</td></tr>
+        <tr><td>總預算</td><td>金額、幣別、包含項目</td><td>避免漏算螢幕與周邊</td></tr>
+        <tr><td>使用目標</td><td>解析度、畫質、目標 FPS</td><td>讓效能需求可以被查證</td></tr>
+      </tbody></table>
+      <div class="callout"><p>也要記錄既有設備（螢幕、鍵盤、滑鼠）以及對維修、升級與售後服務的偏好。</p></div>
+      <div class="source">來源：S01、S02；需求表為教學整理</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">03 / TOTAL COST</div><h2>預算要看「總成本」</h2>
+      <p class="lead">電腦本體價格不一定等於最後花費。先確認哪些設備已經有，哪些還需要購買。</p>
+      <div class="grid">
+        <div class="card soft"><h3>可能需要納入預算</h3><div class="pillrow"><span class="pill">電腦本體</span><span class="pill">螢幕</span><span class="pill">鍵盤／滑鼠</span><span class="pill">作業系統</span><span class="pill">組裝服務</span></div></div>
+        <div class="card"><h3>比較時要問</h3><ul><li>兩個方案是否包含相同設備？</li><li>是否把組裝、服務或其他費用算進去？</li><li>報價是否記錄日期、幣別與地區？</li></ul></div>
+      </div>
+      <div class="callout"><p><strong>避免只比較 CPU 或顯示卡的單一價格。</strong>應比較能完成相同任務的整體方案。</p></div>
+      <div class="source">來源：S01、S02；總成本整理為教學說明</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">04 / LAPTOP OR DESKTOP</div><h2>W02｜筆電還是桌機？</h2>
+      <table><thead><tr><th>比較面向</th><th>筆電</th><th>桌機</th></tr></thead><tbody>
+        <tr><td>攜帶性</td><td>整合螢幕、鍵盤與電池，適合移動使用</td><td>通常固定使用，另需螢幕及供電</td></tr>
+        <tr><td>升級性</td><td>RAM、SSD 是否可升級依機型而異；CPU、GPU 通常不易更換</td><td>多數較容易更換零件，但仍需查相容性</td></tr>
+        <tr><td>客製化</td><td>主要從廠商提供的配置中選擇</td><td>通常有較多零件與散熱選擇</td></tr>
+        <tr><td>效能</td><td>看具體機型、配置與實測</td><td>同樣需要看具體配置與實測</td></tr>
+      </tbody></table>
+      <div class="callout"><p>不能概括宣稱「筆電與桌機效能一樣」，也不能只憑電腦類型判斷性價比。</p></div>
+      <div class="source">來源：S01</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">05 / DESKTOP PURCHASE</div><h2>W03｜桌機有三種購買方式</h2>
+      <div class="grid three">
+        <div class="card"><span class="tag">方便優先</span><h3>預組桌機</h3><p>廠商事先完成配置與組裝。購買前仍要確認零件型號、擴充空間與售後方案。</p></div>
+        <div class="card blue"><span class="tag">配置彈性</span><h3>客製代組</h3><p>自行選擇零件，再由店家或業者組裝。要確認組裝費與售後服務內容。</p></div>
+        <div class="card"><span class="tag">自主性高</span><h3>自行組裝 DIY</h3><p>自己購買、組裝與設定，需要投入時間研究、測試與排錯。</p></div>
+      </div>
+      <div class="grid">
+        <div class="card warn"><h3>常見誤解 1</h3><p>「組裝桌機」不一定代表自己動手，也可能是請店家代組。</p></div>
+        <div class="card warn"><h3>常見誤解 2</h3><p>DIY 不一定最便宜，也不代表沒有保固；通常要分別確認零件保固與整機服務。</p></div>
+      </div>
+      <div class="source">來源：S02</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">06 / MEMORY BASICS</div><h2>W04｜RAM 與 SSD 是不同東西</h2>
+      <div class="two-col">
+        <div class="card blue"><div class="kicker">RAM</div><h3>記憶體：正在工作的桌面</h3><p>暫時存放正在處理的資料。一般 RAM 在斷電後不保留資料。</p><p><strong>容量不足時：</strong>多工可能受限，系統反應也可能變慢。</p></div>
+        <div class="card soft"><div class="kicker">SSD / HDD</div><h3>儲存裝置：收納櫃</h3><p>保存作業系統、程式與檔案。正常情況下，斷電後仍會保留資料。</p><p><strong>容量不足時：</strong>可安裝程式或保存檔案的空間不足。</p></div>
+      </div>
+      <div class="callout"><p><strong>教學比喻：</strong>RAM 像工作桌，SSD 像收納櫃。增加 SSD 容量，不能當成增加同等容量的 RAM。</p></div>
+      <p class="small">補充：儲存裝置能在斷電後保留資料，不代表資料永遠不會損壞或遺失。RAM 充足後，再增加容量也不一定能改善目前的效能瓶頸。</p>
+      <div class="source">來源：S03；Wiki 已排除自動翻譯中容易混淆 RAM 與磁碟空間的操作建議</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">07 / SOFTWARE REQUIREMENTS</div><h2>W05｜先看軟體需求，再決定硬體</h2>
+      <p>不同作業系統與應用程式有不同的最低或建議條件。以下數字只代表 Wiki 所整理來源中的特定需求摘要，不是完整配單。</p>
+      <div class="grid">
+        <div class="card"><h3>Windows 11</h3><div class="big-number">4 GB</div><p>Wiki 所列最低 RAM；另有處理器、儲存空間、UEFI、安全開機、TPM 2.0 與圖形支援等條件。</p><p class="small">不能因此推薦所有人購買 4 GB RAM 的電腦。</p></div>
+        <div class="card"><h3>Premiere 27.0</h3><div class="big-number">16–32 GB+</div><p>Wiki 所列 HD 素材建議 16 GB；4K 及以上建議 32 GB 或以上。Windows on Arm 的最低記憶體另列為 16 GB 共用記憶體。</p></div>
+      </div>
+      <div class="callout"><p>Premiere 的記憶體資訊只是部分需求，不能省略 CPU、GPU、作業系統與儲存裝置條件。Copilot+ PC 也有額外條件，不是所有 Windows 11 電腦都必須具備。</p></div>
+      <div class="source">來源：S04、S05（Premiere 資料依 Wiki 標示版本 27.0、更新日期 2026/11/10）</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">08 / BLENDER</div><h2>Blender｜最低需求與建議需求不同</h2>
+      <table><thead><tr><th>項目</th><th>最低需求（Wiki 摘要）</th><th>建議需求（Wiki 摘要）</th></tr></thead><tbody>
+        <tr><td>CPU</td><td>4 核心、SSE4.2</td><td>8 核心</td></tr>
+        <tr><td>RAM</td><td>8 GB</td><td>32 GB</td></tr>
+        <tr><td>GPU 顯示記憶體</td><td>2 GB，另有圖形支援條件</td><td>8 GB</td></tr>
+      </tbody></table>
+      <div class="card warn"><h3>讀表時要保留的限制</h3><ul><li>此表依 Wiki 提供的 Windows／Linux 資料整理。</li><li>Cycles GPU 渲染另有需求。</li><li>不同版本與作業系統的支援條件可能不同。</li><li>現有 OpenGL／Vulkan 資訊不足以判定各後端完整適用條件。</li></ul></div>
+      <p class="small">因此，不應只憑這張摘要表就認定某一台電腦一定能滿足所有 Blender 工作流程。</p>
+      <div class="source">來源：S06</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">09 / GAME REQUIREMENTS</div><h2>W06｜遊戲需求要連同目標體驗一起看</h2>
+      <div class="grid">
+        <div class="card blue"><h3>CS2｜最低需求摘要</h3><ul><li>4 個硬體 CPU 執行緒</li><li>8 GB RAM</li><li>至少 1 GB 顯示記憶體</li><li>支援 DirectX 11、Shader Model 5.0</li><li>85 GB 可用空間</li></ul><p class="small">Wiki 所列 Windows 最低需求摘要。</p></div>
+        <div class="card"><h3>Cyberpunk 2077｜需求比較</h3><table><tr><th>項目</th><th>最低</th><th>建議</th></tr><tr><td>RAM</td><td>12 GB</td><td>16 GB</td></tr><tr><td>儲存</td><td>70 GB SSD</td><td>70 GB SSD</td></tr></table><p class="small">CPU、GPU 型號詳見下一頁；原始 Wiki 表格未說明對應解析度、畫質與 FPS。</p></div>
+      </div>
+      <div class="callout"><p>4 個執行緒不等於 4 個核心；顯示記憶體容量也不能單獨代表顯示卡效能。</p></div>
+      <div class="source">來源：S10、S11</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">10 / GAME COMPARISON</div><h2>遊戲規格表不能直接換算成 FPS</h2>
+      <table><thead><tr><th>Cyberpunk 2077</th><th>最低需求</th><th>建議需求</th></tr></thead><tbody>
+        <tr><td>CPU</td><td>i7-6700／Ryzen 5 1600</td><td>i7-12700／Ryzen 7 7800X3D</td></tr>
+        <tr><td>RAM</td><td>12 GB</td><td>16 GB</td></tr>
+        <tr><td>GPU</td><td>GTX 1060 6GB／RX 580 8GB／Arc A380</td><td>RTX 2060 SUPER／RX 5700 XT／Arc A770</td></tr>
+        <tr><td>儲存</td><td>70 GB，要求 SSD</td><td>70 GB，要求 SSD</td></tr>
+      </tbody></table>
+      <div class="flow"><div class="step">查官方需求</div><div class="arrow">→</div><div class="step">設定解析度／畫質／FPS</div><div class="arrow">→</div><div class="step">比較候選硬體</div><div class="arrow">→</div><div class="step">查同條件實測</div></div>
+      <div class="card warn"><p><strong>重要限制：</strong>Wiki 所貼表格未說明對應解析度、畫質與 FPS，因此不可推論建議規格能在最高畫質或光追全開下流暢執行。CS2 資料也沒有提供 144 FPS 或 240 FPS 保證。</p></div>
+      <div class="source">來源：S10、S11；查核流程為教學整理</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">11 / DESKTOP COMPATIBILITY</div><h2>W07｜桌機配單要檢查相容性</h2>
+      <p>Wiki 以 MSI MAG B650 TOMAHAWK WIFI 主機板作為規格閱讀案例，僅用來示範如何讀規格，不是購買推薦。</p>
+      <div class="grid">
+        <div class="card"><h3>CPU 與主機板</h3><p>確認 CPU 插槽、精確型號與 BIOS 支援，不要只看系列名稱。</p></div>
+        <div class="card"><h3>RAM</h3><p>案例主機板使用 DDR5、4 個插槽；不能搭配 DDR4。標註 OC 不代表所有配置都能達到最高速度。</p></div>
+        <div class="card"><h3>顯示輸出與 PCIe</h3><p>HDMI／DisplayPort 輸出要確認 CPU 是否具備內建顯示功能。x16 外觀不代表一定以 x16 運作。</p></div>
+        <div class="card"><h3>M.2 與共用資源</h3><p>部分 CPU 可能使特定插槽不可用；案例中 M.2_3 與 PCI_E2 共用頻寬，需讀取註腳。</p></div>
+      </div>
+      <div class="source">來源：S07、S08；S08 的 CPU 支援表缺少表頭，因此不據此判定最低 BIOS 版本</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">12 / BUILD CHECKLIST</div><h2>桌機完整配單，還要補查這些項目</h2>
+      <div class="checklist">
+        <div class="check">主機板與機殼尺寸是否相容</div>
+        <div class="check">顯示卡長度、厚度與供電接頭</div>
+        <div class="check">散熱器高度與支援插槽</div>
+        <div class="check">電源供應器容量與接頭</div>
+        <div class="check">精確 CPU、RAM 與 BIOS 支援</div>
+        <div class="check">M.2／PCIe 插槽是否有共用限制</div>
+      </div>
+      <div class="callout"><p>目前 Wiki 尚未完成整套配置驗證。這些項目是配單前必須繼續查核的清單，不代表已經確認任何一組零件相容。</p></div>
+      <p class="small">不要把缺少的規格自行猜出來；找不到可靠資料時，先標記為「待確認」。</p>
+      <div class="source">來源：S07、S08；查核項目為教學整合</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">13 / LAPTOP CONFIGURATION</div><h2>W08｜筆電要看完整商品型號</h2>
+      <p class="lead">同一系列可能有多種配置。不能把不同商品的 CPU、RAM、SSD 與連接功能拼成一台不存在的筆電。</p>
+      <div class="grid">
+        <div class="card"><h3>核心配置</h3><ul><li>完整商品型號與 CPU</li><li>RAM 容量、類型、焊接或插槽設計</li><li>SSD 容量與空插槽</li></ul></div>
+        <div class="card"><h3>使用體驗</h3><ul><li>螢幕解析度、亮度、更新率與色域</li><li>筆電重量與變壓器重量</li><li>USB-C 充電與影像功能</li><li>保固、價格與供貨</li></ul></div>
+      </div>
+      <div class="card warn"><h3>Wiki 中的資料限制</h3><p>ASUS Vivobook 15 X1504 的多配置欄位對應遺失，因此本版不產生單一型號配單。擴充插槽包含已使用的，不代表仍有空位；42 Wh 也不能直接換算續航時數。</p></div>
+      <div class="source">來源：S09</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">14 / SCENARIO 1</div><h2>W09｜情境一：文書、視訊、經常攜帶</h2>
+      <div class="two-col">
+        <div><span class="tag">教學假設案例</span><h3>需求描述</h3><p class="lead">主要處理文書與視訊，經常需要帶著電腦移動，不玩遊戲。</p><h3>優先比較方向</h3><p>先比較一般筆電，因為攜帶性是明確需求。</p></div>
+        <div class="card soft"><h3>購買前查核</h3><ul><li>指定軟體是否支援</li><li>實際重量與變壓器重量</li><li>鍵盤、連接埠與螢幕</li><li>續航測試與保固</li><li>總預算是否包含必要周邊</li></ul></div>
+      </div>
+      <div class="callout"><p>這是需求分析示範，不是特定品牌或型號推薦，也沒有虛構報價或續航測試。</p></div>
+      <div class="source">來源：S01、S09；案例為 Wiki 的教學假設</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">15 / SCENARIO 2 & 3</div><h2>另外兩種情境怎麼分析？</h2>
+      <div class="grid">
+        <div class="card blue"><span class="tag">情境二｜CS2</span><h3>不需攜帶、重視升級</h3><p><strong>優先比較：</strong>預組或客製桌機。</p><p><strong>下一步：</strong>設定目標 FPS，查同條件實測、總預算與零件相容性。</p></div>
+        <div class="card"><span class="tag">情境三｜Cyberpunk 2077</span><h3>需要玩大型遊戲，也要攜帶</h3><p><strong>優先比較：</strong>電競筆電。</p><p><strong>下一步：</strong>確認解析度、畫質、機型實測、重量與散熱表現。</p></div>
+      </div>
+      <div class="callout"><p>「優先比較」不等於直接購買。仍須用精確型號、實測與預算完成最後判斷。</p></div>
+      <div class="source">來源：S01、S02、S10、S11；案例為 Wiki 的教學假設</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">16 / BEFORE YOU BUY</div><h2>購買前最後檢查表</h2>
+      <div class="checklist">
+        <div class="check">已列出用途、軟體與遊戲</div>
+        <div class="check">已確認攜帶需求</div>
+        <div class="check">已設定總預算與包含項目</div>
+        <div class="check">已區分最低需求與想要的體驗</div>
+        <div class="check">已確認精確型號，沒有混用配置</div>
+        <div class="check">效能結論有相關實測支持</div>
+        <div class="check">桌機已完成零件相容性查核</div>
+        <div class="check">已確認作業系統、保固及服務</div>
+        <div class="check">報價附有日期、幣別與地區</div>
+        <div class="check">尚未查清的事項標為「待確認」</div>
+      </div>
+      <div class="callout"><p><strong>最重要的習慣：</strong>不要讓看起來完整的規格表，掩蓋資料本身的缺漏。</p></div>
+      <div class="source">來源：S01～S11；檢查表為教學整合</div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">17 / SUMMARY</div><h2>把選購流程變成可重複的方法</h2>
+      <div class="flow">
+        <div class="step">確認用途與預算</div><div class="arrow">→</div>
+        <div class="step">選擇筆電／桌機</div><div class="arrow">→</div>
+        <div class="step">查軟體與遊戲需求</div><div class="arrow">→</div>
+        <div class="step">比較精確配置</div><div class="arrow">→</div>
+        <div class="step">檢查相容性與實測</div>
+      </div>
+      <div class="grid three">
+        <div class="card"><h3>需求先行</h3><p>先知道要完成什麼任務，才知道該看哪些規格。</p></div>
+        <div class="card"><h3>資料要對應</h3><p>版本、型號、表頭與配置不能缺漏或混用。</p></div>
+        <div class="card"><h3>不確定就標示</h3><p>最低需求不等於體驗保證；沒有實測就不承諾 FPS。</p></div>
+      </div>
+      <p class="lead" style="margin-top:25px">選對電腦，不是買規格最高的那台，而是找到能符合需求、預算與使用方式的方案。</p>
+      <div class="source">來源：S01～S11；本頁為 Wiki 教學內容總結</div>
+    </section>
+  </main>
+  <div class="footer">
+    <div class="small">使用 <kbd>←</kbd> <kbd>→</kbd> 切換頁面</div>
+    <div class="controls"><button id="prev" aria-label="上一頁">← 上一頁</button><span id="counter">1 / 17</span><button class="primary" id="next" aria-label="下一頁">下一頁 →</button></div>
+  </div>
+</div>
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let index = 0;
+  function show(n) {
+    index = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    counter.textContent = `${index + 1} / ${slides.length}`;
+    progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+    prev.disabled = index === 0;
+    next.disabled = index === slides.length - 1;
+    document.title = `${index + 1}. ${slides[index].querySelector('h1,h2')?.innerText.replace(/\n/g,' ') || '電腦選購指南'}`;
+  }
+  prev.addEventListener('click', () => show(index - 1));
+  next.addEventListener('click', () => show(index + 1));
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); show(index + 1); }
+    if (['ArrowLeft','PageUp'].includes(e.key)) { e.preventDefault(); show(index - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
